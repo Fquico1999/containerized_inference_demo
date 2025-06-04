@@ -107,8 +107,6 @@ async def root():
         info = get_pipeline_cached.cache_info()
         # If current size > 0, it means *something* is cached. The default model was attempted.
         if info.currsize > 0:
-            # This doesn't confirm *this specific key* is in cache without iterating keys (internal).
-            # But it's a good indicator that preloading put *something* in.
              default_model_status = "Preload attempted, cache populated"
         else:
              default_model_status = "Preload attempted, cache appears empty"
@@ -140,14 +138,7 @@ async def predict(request: InferenceRequest):
         cache_info_after = get_pipeline_cached.cache_info()
 
         # Determine if this call resulted in an LRU cache hit for the pipeline object
-        # A hit means the 'hits' counter increased.
         pipeline_from_lru_cache = cache_info_after.hits > cache_info_before.hits
-        
-        # If it wasn't a hit, it was a miss (new load or re-load after eviction)
-        # If it was a miss, the 'misses' counter would increase.
-        # if cache_info_after.misses > cache_info_before.misses:
-        #    pipeline_from_lru_cache = False # Explicitly false if miss incremented
-
         logger.info(f"PID: {worker_pid} - Processing request for model '{request.model_name}', task '{request.task}'. Pipeline from LRU cache: {pipeline_from_lru_cache}")
         
         inference_start_time = time.perf_counter()
@@ -195,7 +186,6 @@ async def readiness():
     try:
         if DEFAULT_MODEL_NAME and DEFAULT_TASK:
             # Attempt to get the default model pipeline (from cache if preloaded)
-            # This call also contributes to MODEL_LOAD_TIME if it's a fresh load.
             get_pipeline_cached(model_name=DEFAULT_MODEL_NAME, task=DEFAULT_TASK, device=device_id)
             # To be truly ready, we should ensure it didn't throw an error.
             return {"status": "ready", "message": f"Default model '{DEFAULT_MODEL_NAME}' accessible/loadable.", "pid": os.getpid()}
@@ -217,12 +207,9 @@ async def metrics():
 @app.get("/cache_info", summary="LRU Cache Info", description="Information about the loaded model pipeline cache.")
 async def cache_info_endpoint():
     # get_pipeline_cached.cache_info() is the public API.
-    # We should avoid trying to list keys from internal attributes like _lru_cache_items.
-    # The cache_info object itself (hits, misses, currsize, maxsize) is what's guaranteed.
     return {
         "pid": os.getpid(),
         "lru_cache_stats": str(get_pipeline_cached.cache_info())
-        # "lru_cache_keys_approx": "Keys are an internal detail and not exposed for robustness."
     }
 
 if __name__ == "__main__":
