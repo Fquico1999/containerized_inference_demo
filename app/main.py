@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Dynamic HuggingFace Inference API",
     description="An API to get inferences from any HuggingFace model, supporting batch requests and parallel processing.",
-    version="1.1.1" # Incremented version for fix
+    version="1.0.0"
 )
 
 # --- Prometheus Metrics Initialization ---
