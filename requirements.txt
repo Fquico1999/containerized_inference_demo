@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+gunicorn
+transformers
+torch # Or specific version like torch==1.13.1+cpu for CPU-only
+# For GPU, ensure CUDA toolkit compatible version is installed or use:
+# torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 (example for CUDA 11.8)
+pydantic
+python-dotenv # Optional
+requests # For the client notebook
+aiohttp # For async client in notebook
+nest_asyncio # For running asyncio in notebook
+prometheus-client # For metrics
