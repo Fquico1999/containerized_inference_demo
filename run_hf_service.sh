@@ -13,8 +13,10 @@ docker run -d --rm -p 9090:9090 \
     --name prometheus_server prom/prometheus
 
 # Run inference container
-docker run --rm -p 8000:8000 \
+docker run --rm -p 8080:80 \
+    --gpus all \
     --network hf_inference_network \
+    -e GUNICORN_WORKERS=4 \
     -v "$(pwd)/app:/app/app" \
     -v "$(pwd)/hf_cache:/app/.cache/huggingface" \
     -v "$(pwd)/prometheus_metrics:/app/prometheus_metrics" \
